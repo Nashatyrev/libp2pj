@@ -11,13 +11,14 @@ import org.libp2pj.Multiaddress;
 public class MultiaddressTest {
 
     @Test
-    public void test1() {
+    public void test1() throws Exception {
         {
             String addr1S = "/ip4/127.0.0.1/tcp/12345";
             Multiaddress addr1 = Multiaddress.fromString(addr1S);
             System.out.println(Hex.encodeHex(addr1.getEncoded()));
             Assert.assertEquals("047f000001063039", Hex.encodeHexString(addr1.getEncoded()));
             Assert.assertEquals(addr1S, addr1.getString());
+            Assert.assertEquals(addr1S, Multiaddress.fromBytes(addr1.getEncoded()).getString());
         }
 
         {
@@ -26,6 +27,7 @@ public class MultiaddressTest {
             System.out.println(Hex.encodeHex(addr1.getEncoded()));
             Assert.assertEquals("a202", Hex.encodeHexString(addr1.getEncoded()));
             Assert.assertEquals(addr1S, addr1.getString());
+            Assert.assertEquals(addr1S, Multiaddress.fromBytes(addr1.getEncoded()).getString());
         }
 
         {
@@ -34,6 +36,7 @@ public class MultiaddressTest {
             System.out.println(Hex.encodeHex(addr1.getEncoded()));
             Assert.assertEquals("290000000000000000000000000000000106968b", Hex.encodeHexString(addr1.getEncoded()));
             Assert.assertEquals("/ip6/0:0:0:0:0:0:0:1/tcp/38539", addr1.getString());
+            Assert.assertEquals("/ip6/0:0:0:0:0:0:0:1/tcp/38539", Multiaddress.fromBytes(addr1.getEncoded()).getString());
         }
     }
 }

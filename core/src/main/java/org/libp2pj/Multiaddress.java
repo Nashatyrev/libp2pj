@@ -18,28 +18,32 @@ import java.util.stream.Collectors;
 public class Multiaddress {
 
     public static Multiaddress fromBytes(byte[] bytes) {
-        List<Component> components = new ArrayList<>();
-        int off = 0;
-        while (off < bytes.length) {
-            Optional<TransportProtocol> protocol = TransportProtocol.fromVCode(bytes, off);
-            if (!protocol.isPresent()) {
-                throw new MalformedMultiaddressException("Can't resolve protocol in address " +
-                        Hex.encodeHexString(bytes) + " at offset " + off + " (decoded components: " + components + ")");
+        try {
+            List<Component> components = new ArrayList<>();
+            int off = 0;
+            while (off < bytes.length) {
+                Optional<TransportProtocol> protocol = TransportProtocol.fromVCode(bytes, off);
+                if (!protocol.isPresent()) {
+                    throw new MalformedMultiaddressException("Can't resolve protocol in address " +
+                            Hex.encodeHexString(bytes) + " at offset " + off + " (decoded components: " + components + ")");
+                }
+                off += protocol.get().getVCode().length;
+                if (!protocol.get().isFixedLengthData()) {
+                    throw new UnsupportedOperationException("Not implemented yet");
+                }
+                if (protocol.get().hasData()) {
+                    components.add(new Component(protocol.get(),
+                            Arrays.copyOfRange(bytes, off, off + protocol.get().getSize())));
+                    off += protocol.get().getSize();
+                } else {
+                    components.add(new Component(protocol.get()));
+                }
             }
-            off += protocol.get().getVCode().length;
-            if (!protocol.get().isFixedLengthData()) {
-                throw new UnsupportedOperationException("Not implemented yet");
-            }
-            if (protocol.get().hasData()) {
-                components.add(new Component(protocol.get(),
-                        Arrays.copyOfRange(bytes, off, protocol.get().getSize())));
-                off += protocol.get().getSize();
-            } else {
-                components.add(new Component(protocol.get()));
-            }
-        }
 
-        return new Multiaddress(components);
+            return new Multiaddress(components);
+        } catch (Exception e) {
+            throw new RuntimeException("Error parsing address from bytes: " + Hex.encodeHexString(bytes), e);
+        }
     }
 
     public static Multiaddress fromString(String multiaddress) {
