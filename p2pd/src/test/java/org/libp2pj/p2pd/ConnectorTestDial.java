@@ -17,7 +17,7 @@ import static java.util.Collections.singletonList;
 public class ConnectorTestDial {
 
     public static void main(String[] args) throws Exception {
-        startDialer("/ip4/127.0.0.1/tcp/43180", "QmWaWjD7Sfs7Lw7ZgMgbRN47e2iakSMuZHqPRkctHyhFzf");
+        startDialer("/ip4/127.0.0.1/tcp/43180", "Qmf7TGDYDgNFrRYEYHrWG6RKey9K1P7rjzS4VFJFBSLmUL");
 //        if ("dial".equals(args[0])) {
 //            startDialer(args[1], args[2]);
 //        } else if ("listen".equals(args[0])) {
@@ -42,6 +42,7 @@ public class ConnectorTestDial {
 
         CountDownLatch sessionLatch = new CountDownLatch(1);
 
+        System.out.println("Dialing peer " + peerId + " ...");
         host.dial(new Muxer.MuxerAdress(peerId, "testProtocol"),
                 new StreamHandler<Muxer.MuxerAdress>() {
             @Override

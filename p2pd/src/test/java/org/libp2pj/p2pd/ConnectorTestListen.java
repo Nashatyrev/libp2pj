@@ -37,7 +37,6 @@ public class ConnectorTestListen {
 
         CountDownLatch sessionLatch = new CountDownLatch(1);
 
-        System.out.println("Listening to connection: " + listenAddress);
         CompletableFuture<Closeable> connect = host.listen(listenAddress, () ->
                 new StreamHandler<Muxer.MuxerAdress>() {
                     @Override
