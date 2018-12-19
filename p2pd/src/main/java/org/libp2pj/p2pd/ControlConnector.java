@@ -67,8 +67,13 @@ public class ControlConnector {
         @Override
         protected void initChannel(EpollDomainSocketChannel ch) throws Exception {
             DaemonChannelHandler handler = new DaemonChannelHandler(ch, initiator);
-            handlersConsumer.accept(handler);
             ch.pipeline().addFirst(new SimpleChannelInboundHandler() {
+                @Override
+                public void channelActive(ChannelHandlerContext ctx) throws Exception {
+                    handlersConsumer.accept(handler);
+                    super.channelActive(ctx);
+                }
+
                 @Override
                 protected void channelRead0(ChannelHandlerContext ctx, Object msg) throws Exception {
                     handler.onData((ByteBuf) msg);
