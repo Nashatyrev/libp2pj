@@ -94,9 +94,7 @@ public class DaemonChannelHandler implements Closeable, AutoCloseable {
         ChannelFuture channelFuture = channel.writeAndFlush(buffer);
 
         try {
-            System.out.println("writeAndFlush:1");
             channelFuture.get();
-            System.out.println("writeAndFlush:2");
         } catch (InterruptedException e) {
             throw new RuntimeException(e);
         } catch (ExecutionException e) {

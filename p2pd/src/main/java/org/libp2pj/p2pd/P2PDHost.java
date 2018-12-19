@@ -41,18 +41,13 @@ public class P2PDHost implements Host {
     }
 
     private P2Pd.IdentifyResponse identify() {
-        System.out.println("identify: 1");
         try (DaemonChannelHandler h = new ControlConnector().connect(domainSocketPath).get()) {
-            System.out.println("identify: 2");
             CompletableFuture<P2Pd.Response> resp1 = h.call(P2Pd.Request.newBuilder()
                     .setType(P2Pd.Request.Type.IDENTIFY)
                     .build(), new DaemonChannelHandler.SimpleResponseBuilder());
-            System.out.println("identify: 3");
             if (resp1.get().getType() == P2Pd.Response.Type.ERROR) {
-                System.out.println("identify: 5");
                 throw new P2PDError(resp1.get().getError().toString());
             } else {
-                System.out.println("identify: 4");
                 return resp1.get().getIdentify();
             }
         } catch (Exception e) {
@@ -127,7 +122,6 @@ public class P2PDHost implements Host {
     @Override
     public CompletableFuture<Closeable> listen(MuxerAdress muxerAdress, Supplier<StreamHandler<MuxerAdress>> handlerFactory) {
         ControlConnector ccListen = new ControlConnector();
-        System.out.println("Start listening...");
         String listenPath = "/tmp/p2pd.client." + counter.incrementAndGet();
         ChannelFuture channelFuture = ccListen.listen(listenPath, h -> {
             StreamHandler<MuxerAdress> streamHandler = handlerFactory.get();

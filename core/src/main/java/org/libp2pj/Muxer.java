@@ -21,6 +21,10 @@ public interface Muxer extends Connector<Closeable, Muxer.MuxerAdress> {
                                         Supplier<StreamHandler<MuxerAdress>> handlerFactory);
 
     public class MuxerAdress {
+        public static MuxerAdress listenAddress(String... protocolNames) {
+            return new MuxerAdress(null, protocolNames);
+        }
+
         private final List<Protocol> protocols = new ArrayList<>();
         private final Peer peer;
 

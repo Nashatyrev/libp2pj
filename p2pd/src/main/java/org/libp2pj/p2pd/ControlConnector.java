@@ -68,31 +68,15 @@ public class ControlConnector {
         protected void initChannel(EpollDomainSocketChannel ch) throws Exception {
             DaemonChannelHandler handler = new DaemonChannelHandler(ch, initiator);
             handlersConsumer.accept(handler);
-            System.out.println("InitChannel: " + ch);
             ch.pipeline().addFirst(new SimpleChannelInboundHandler() {
                 @Override
                 protected void channelRead0(ChannelHandlerContext ctx, Object msg) throws Exception {
-                    System.out.println("channelRead0: " + msg);
                     handler.onData((ByteBuf) msg);
                 }
 
                 @Override
                 public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
-                    System.out.println("error: " + cause);
                     handler.onError(cause);
-                    super.exceptionCaught(ctx, cause);
-                }
-            });
-            ch.pipeline().addFirst(new ChannelOutboundHandlerAdapter() {
-                @Override
-                public void write(ChannelHandlerContext ctx, Object msg, ChannelPromise promise) throws Exception {
-                    System.out.println("write: " + msg);
-                    super.write(ctx, msg, promise);
-                }
-
-                @Override
-                public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
-                    System.out.println("error: " + cause);
                     super.exceptionCaught(ctx, cause);
                 }
             });
