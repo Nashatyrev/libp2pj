@@ -1,0 +1,3 @@
+rootProject.name = 'libp2pj'
+include 'core'
+include 'p2pd'
