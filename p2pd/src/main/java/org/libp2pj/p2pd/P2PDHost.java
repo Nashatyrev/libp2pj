@@ -103,8 +103,14 @@ public class P2PDHost implements Host {
                                 ).build(),
                         new DaemonChannelHandler.SimpleResponseStreamBuilder());
                 resp.whenComplete((r, t) -> {
-                    if (t != null) {
-                        streamHandler.onError(t);
+                    Throwable anyError = t;
+
+                    if (r != null && r.getType() == P2Pd.Response.Type.ERROR) {
+                        anyError = new P2PDError(r.getError().toString());
+                    }
+
+                    if (anyError != null) {
+                        streamHandler.onError(anyError);
                         handler.close();
                     }
                 });
