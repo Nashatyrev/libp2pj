@@ -1,5 +1,6 @@
 package org.libp2pj.p2pd;
 
+import io.ipfs.multiaddr.MultiAddress;
 import org.libp2pj.*;
 
 import java.nio.ByteBuffer;
@@ -32,7 +33,7 @@ public class ConnectorTestDial {
         Thread.sleep(1000);
         System.out.println("My listen addresses: " + host.getListenAddresses());
 
-        Multiaddress peerAddr = Multiaddress.fromString(addr);
+        MultiAddress peerAddr = new MultiAddress(addr);
         Peer peerId = Peer.fromBase58(id);
 
         System.out.println("Connecting to other peer: " + peerAddr + ", " + peerId);

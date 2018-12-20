@@ -1,6 +1,7 @@
 package org.libp2pj.p2pd;
 
 import com.google.protobuf.ByteString;
+import io.ipfs.multiaddr.MultiAddress;
 import io.netty.channel.ChannelFuture;
 import org.libp2pj.*;
 import p2pd.pb.P2Pd;
@@ -34,9 +35,9 @@ public class P2PDHost implements Host {
     }
 
     @Override
-    public List<Multiaddress> getListenAddresses() {
+    public List<MultiAddress> getListenAddresses() {
         return identify().getAddrsList().stream()
-                .map(bs -> Multiaddress.fromBytes(bs.toByteArray()))
+                .map(bs -> new MultiAddress(bs.toByteArray()))
                 .collect(Collectors.toList());
     }
 
@@ -56,14 +57,14 @@ public class P2PDHost implements Host {
     }
 
     @Override
-    public CompletableFuture<Void> connect(List<Multiaddress> peerAddresses, Peer peerId) {
+    public CompletableFuture<Void> connect(List<MultiAddress> peerAddresses, Peer peerId) {
         try (DaemonChannelHandler handler = new ControlConnector().connect(domainSocketPath).get()) {
             CompletableFuture<P2Pd.Response> resp = handler.call(P2Pd.Request.newBuilder()
                             .setType(P2Pd.Request.Type.CONNECT)
                             .setConnect(P2Pd.ConnectRequest.newBuilder()
                                     .setPeer(ByteString.copyFrom(peerId.getIdBytes()))
                                     .addAllAddrs(peerAddresses.stream()
-                                                    .map(addr -> ByteString.copyFrom(addr.getEncoded()))
+                                                    .map(addr -> ByteString.copyFrom(addr.getBytes()))
                                                     .collect(Collectors.toList()))
                                     .setTimeout(requestTimeoutSec)
                                     .build()

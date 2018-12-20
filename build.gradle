@@ -23,6 +23,7 @@ subprojects {
         jcenter()
         mavenLocal()
         mavenCentral()
+        maven { url 'https://jitpack.io' }
     }
 
     sourceSets {
@@ -37,10 +38,6 @@ subprojects {
 
 project(':core') {
 }
-
-
-
-
 
 project(':p2pd') {
     dependencies {

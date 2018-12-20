@@ -1,5 +1,7 @@
 package org.libp2pj;
 
+import io.ipfs.multiaddr.MultiAddress;
+
 import java.io.Closeable;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Supplier;
@@ -7,25 +9,25 @@ import java.util.function.Supplier;
 /**
  * Created by Anton Nashatyrev on 10.12.2018.
  */
-public interface Transport extends Connector<Transport.Listener, Multiaddress> {
+public interface Transport extends Connector<Transport.Listener, MultiAddress> {
 
 
     @Override
-    void dial(Multiaddress multiaddress,
-              StreamHandler<Multiaddress> dialHandler);
+    void dial(MultiAddress multiaddress,
+              StreamHandler<MultiAddress> dialHandler);
 
     @Override
-    CompletableFuture<Listener> listen(Multiaddress multiaddress,
-                                       Supplier<StreamHandler<Multiaddress>> handlerFactory);
+    CompletableFuture<Listener> listen(MultiAddress multiaddress,
+                                       Supplier<StreamHandler<MultiAddress>> handlerFactory);
 
     interface Listener extends Closeable {
 
         @Override
         void close();
 
-        Multiaddress getLocalMultiaddress();
+        MultiAddress getLocalMultiaddress();
 
-        default CompletableFuture<Multiaddress> getPublicMultiaddress() {
+        default CompletableFuture<MultiAddress> getPublicMultiaddress() {
             return CompletableFuture.completedFuture(getLocalMultiaddress());
         }
     }
