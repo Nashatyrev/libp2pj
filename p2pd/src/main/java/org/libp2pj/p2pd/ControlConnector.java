@@ -82,7 +82,6 @@ public class ControlConnector {
                 @Override
                 public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
                     handler.onError(cause);
-                    super.exceptionCaught(ctx, cause);
                 }
             });
         }

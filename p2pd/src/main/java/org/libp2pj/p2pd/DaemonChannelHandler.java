@@ -54,6 +54,8 @@ public class DaemonChannelHandler implements Closeable, AutoCloseable {
         while (bytes.isReadable()) {
             if (stream != null) {
                 streamHandler.onRead(bytes.nioBuffer());
+                bytes.clear();
+                break;
             } else {
                 ResponseBuilder responseBuilder = respBuildQueue.peek();
                 if (responseBuilder == null) {

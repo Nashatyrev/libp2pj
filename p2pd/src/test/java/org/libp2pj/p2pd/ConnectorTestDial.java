@@ -60,7 +60,8 @@ public class ConnectorTestDial {
 
             @Override
             public void onRead(ByteBuffer data) {
-                System.out.println("Message received: " + new String(Util.byteBufferToArray(data)));
+
+                System.out.println("Message received: (" + data.remaining() + ") " + new String(Util.byteBufferToArray(data)));
             }
 
             @Override
