@@ -1,5 +1,6 @@
 package org.libp2pj.p2pd;
 
+import io.netty.buffer.ByteBuf;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelFutureListener;
@@ -61,6 +62,12 @@ public class Util {
 
     private static <V> Promise<V> newPromise() {
         return ImmediateEventExecutor.INSTANCE.newPromise();
+    }
+
+    public static byte[] byteBufToArray(ByteBuf bb) {
+        byte[] ret = new byte[bb.readableBytes()];
+        bb.readBytes(ret);
+        return ret;
     }
 
     public static byte[] byteBufferToArray(ByteBuffer bb) {

@@ -14,7 +14,7 @@ import java.util.stream.Collectors;
 public interface Muxer extends Connector<Closeable, Muxer.MuxerAdress> {
 
     @Override
-    void dial(MuxerAdress muxerAdress, StreamHandler<MuxerAdress> handler);
+    CompletableFuture<Void> dial(MuxerAdress muxerAdress, StreamHandler<MuxerAdress> handler);
 
     @Override
     CompletableFuture<Closeable> listen(MuxerAdress muxerAdress,

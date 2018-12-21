@@ -9,8 +9,8 @@ import java.util.function.Supplier;
  */
 public interface Connector<TListener extends Closeable, TEndpoint> {
 
-    void dial(TEndpoint address,
-              StreamHandler<TEndpoint> handler);
+    CompletableFuture<Void> dial(TEndpoint address,
+                                 StreamHandler<TEndpoint> handler);
 
     CompletableFuture<TListener> listen(TEndpoint listenAddress,
                                         Supplier<StreamHandler<TEndpoint>> handlerFactory);

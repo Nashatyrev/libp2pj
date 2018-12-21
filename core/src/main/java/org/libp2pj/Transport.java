@@ -13,7 +13,7 @@ public interface Transport extends Connector<Transport.Listener, MultiAddress> {
 
 
     @Override
-    void dial(MultiAddress multiaddress,
+    CompletableFuture<Void> dial(MultiAddress multiaddress,
               StreamHandler<MultiAddress> dialHandler);
 
     @Override

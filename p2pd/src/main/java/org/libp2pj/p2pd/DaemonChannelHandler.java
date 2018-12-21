@@ -1,11 +1,14 @@
 package org.libp2pj.p2pd;
 
+import com.google.protobuf.CodedInputStream;
 import com.google.protobuf.InvalidProtocolBufferException;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufInputStream;
+import io.netty.buffer.Unpooled;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelFutureListener;
+import org.apache.commons.codec.binary.Hex;
 import org.libp2pj.Muxer;
 import org.libp2pj.Stream;
 import org.libp2pj.StreamHandler;
@@ -32,6 +35,7 @@ public class DaemonChannelHandler implements Closeable, AutoCloseable {
     private Queue<ResponseBuilder> respBuildQueue = new ConcurrentLinkedQueue<>();
     private StreamHandler<Muxer.MuxerAdress> streamHandler;
     private Stream<Muxer.MuxerAdress> stream;
+    private ByteBuf prevDataTail = Unpooled.buffer(0);
 
     public DaemonChannelHandler(Channel channel, boolean isInitiator) {
         this.channel = channel;
@@ -42,32 +46,40 @@ public class DaemonChannelHandler implements Closeable, AutoCloseable {
         this.streamHandler = streamHandler;
     }
 
-    void onData(ByteBuf bytes) throws InvalidProtocolBufferException {
-        if (!bytes.isReadable()) return;
+    void onData(ByteBuf msg) throws InvalidProtocolBufferException {
+        ByteBuf bytes = prevDataTail.isReadable() ? Unpooled.wrappedBuffer(prevDataTail, msg) : msg;
+        while (bytes.isReadable()) {
+            if (stream != null) {
+                streamHandler.onRead(bytes.nioBuffer());
+            } else {
+                ResponseBuilder responseBuilder = respBuildQueue.peek();
+                if (responseBuilder == null) {
+                    throw new RuntimeException("Unexpected response message from p2pDaemon");
+                }
 
-        if (stream != null) {
-            streamHandler.onRead(bytes.nioBuffer());
-        } else {
-            ResponseBuilder responseBuilder = respBuildQueue.peek();
-            if (responseBuilder == null) {
-                throw new RuntimeException("Unexpected response message from p2pDaemon");
+                try {
+                    ByteBuf bbDup = bytes.duplicate();
+                    InputStream is = new ByteBufInputStream(bbDup);
+                    int msgLen = CodedInputStream.readRawVarint32(is.read(), is);
+                    if (msgLen > bbDup.readableBytes()) {
+                        break;
+                    }
+                } catch (IOException e) {
+                    throw new RuntimeException(e);
+                }
+                Action action = responseBuilder.parseNextMessage(bytes);
+                if (action != Action.ContinueResponse) {
+                    respBuildQueue.poll();
+                }
+
+                if (action == Action.StartStream) {
+                    stream = new NettyStream(channel, isInitiator);
+                    streamHandler.onCreate(stream);
+                    channel.closeFuture().addListener((ChannelFutureListener) future -> streamHandler.onClose());
+                }
             }
-
-            // TODO currently we don't handle fragmented messages
-            Action action = responseBuilder.parseNextMessage(bytes);
-            if (action != Action.ContinueResponse) {
-                respBuildQueue.poll();
-            }
-
-            if (action == Action.StartStream) {
-                stream = new NettyStream(channel, isInitiator);
-                streamHandler.onCreate(stream);
-                channel.closeFuture().addListener((ChannelFutureListener) future -> streamHandler.onClose());
-            }
-
-            // in case if anything left (either another message or stream start)
-            onData(bytes);
         }
+        prevDataTail = Unpooled.wrappedBuffer(Util.byteBufToArray(bytes));
     }
 
     void onError(Throwable t) {
@@ -120,13 +132,16 @@ public class DaemonChannelHandler implements Closeable, AutoCloseable {
     }
 
     public static abstract class ResponseBuilder<TResponse> {
+        protected boolean throwOnResponseError = true;
         protected CompletableFuture<TResponse> respFuture = new CompletableFuture<>();
 
         protected Action parseNextMessage(ByteBuf bytes) {
+            ByteBuf buf = bytes.duplicate();
             try {
                 return parseNextMessage(new ByteBufInputStream(bytes));
             } catch (Exception e) {
-                respFuture.completeExceptionally(e);
+                respFuture.completeExceptionally(new RuntimeException("Error parsing message: "
+                        + Hex.encodeHexString(Util.byteBufToArray(buf)), e));
                 return Action.EndResponse;
             }
         }
@@ -148,7 +163,13 @@ public class DaemonChannelHandler implements Closeable, AutoCloseable {
         @Override
         Action parseNextMessage(InputStream is) {
             try {
-                respFuture.complete(parser.apply(is));
+                TResponse response = parser.apply(is);
+                if (throwOnResponseError && response instanceof P2Pd.Response &&
+                        ((P2Pd.Response) response).getType() == P2Pd.Response.Type.ERROR) {
+                    throw new P2PDError(((P2Pd.Response) response).getError().toString());
+                } else {
+                    respFuture.complete(response);
+                }
             } catch (Exception e) {
                 respFuture.completeExceptionally(e);
             }

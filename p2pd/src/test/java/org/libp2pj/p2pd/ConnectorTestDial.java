@@ -38,7 +38,7 @@ public class ConnectorTestDial {
 
         System.out.println("Connecting to other peer: " + peerAddr + ", " + peerId);
         CompletableFuture<Void> connect = host.connect(singletonList(peerAddr), peerId);
-        connect.get(5, TimeUnit.SECONDS);
+        connect.get(15, TimeUnit.SECONDS);
         System.out.println("Connection successful!");
 
         CountDownLatch sessionLatch = new CountDownLatch(1);

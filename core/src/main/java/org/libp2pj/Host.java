@@ -19,13 +19,15 @@ public interface Host extends Muxer {
     CompletableFuture<Void> connect(List<MultiAddress> peerAddresses, Peer peerId);
 
     @Override
-    void dial(MuxerAdress muxerAdress, StreamHandler<MuxerAdress> handler);
+    CompletableFuture<Void> dial(MuxerAdress muxerAdress, StreamHandler<MuxerAdress> handler);
 
     @Override
     CompletableFuture<Closeable> listen(MuxerAdress muxerAdress,
                                         Supplier<StreamHandler<MuxerAdress>> handlerFactory);
 
     void close();
+
+    DHT getDht();
 
 //    Peerstore getPeerStore();
 
