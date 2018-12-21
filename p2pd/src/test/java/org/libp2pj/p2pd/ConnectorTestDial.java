@@ -48,7 +48,8 @@ public class ConnectorTestDial {
                 new StreamHandler<Muxer.MuxerAdress>() {
             @Override
             public void onCreate(Stream<Muxer.MuxerAdress> stream) {
-                System.out.println("Stream created. Writing messages...");
+                System.out.println("Stream created: " + stream);
+                System.out.println("Writing messages...");
 
                 AtomicInteger counter = new AtomicInteger();
                 Executors.newSingleThreadScheduledExecutor().scheduleAtFixedRate(() -> {

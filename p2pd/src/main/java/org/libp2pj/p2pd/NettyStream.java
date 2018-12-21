@@ -59,4 +59,9 @@ public class NettyStream implements Stream<Muxer.MuxerAdress> {
     public Muxer.MuxerAdress getLocalAddress() {
         return localAddress;
     }
+
+    @Override
+    public String toString() {
+        return "NettyStream{" + getLocalAddress() + (isInitiator() ? " -> " : " <- ") + getRemoteAddress();
+    }
 }

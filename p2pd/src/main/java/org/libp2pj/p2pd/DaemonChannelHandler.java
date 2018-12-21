@@ -10,6 +10,7 @@ import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelFutureListener;
 import org.apache.commons.codec.binary.Hex;
 import org.libp2pj.Muxer;
+import org.libp2pj.Peer;
 import org.libp2pj.Stream;
 import org.libp2pj.StreamHandler;
 import p2pd.pb.P2Pd;
@@ -24,6 +25,8 @@ import java.util.Queue;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.ExecutionException;
+
+import static org.libp2pj.Muxer.*;
 
 /**
  * Created by Anton Nashatyrev on 14.12.2018.
@@ -73,7 +76,11 @@ public class DaemonChannelHandler implements Closeable, AutoCloseable {
                 }
 
                 if (action == Action.StartStream) {
-                    stream = new NettyStream(channel, isInitiator);
+                    P2Pd.StreamInfo resp = responseBuilder.getStreamInfo();
+                    MuxerAdress remoteAddr = new MuxerAdress(new Peer(resp.getPeer().toByteArray()), resp.getProto());
+                    MuxerAdress localAddr = MuxerAdress.listenAddress(resp.getProto());
+
+                    stream = new NettyStream(channel, isInitiator, localAddr, remoteAddr);
                     streamHandler.onCreate(stream);
                     channel.closeFuture().addListener((ChannelFutureListener) future -> streamHandler.onClose());
                 }
@@ -150,6 +157,19 @@ public class DaemonChannelHandler implements Closeable, AutoCloseable {
 
         CompletableFuture<TResponse> getResponse() {
             return respFuture;
+        }
+
+        P2Pd.StreamInfo getStreamInfo() {
+            try {
+                TResponse resp = respFuture.get();
+                if (resp instanceof P2Pd.Response) {
+                    return ((P2Pd.Response) resp).getStreamInfo();
+                } else {
+                    return (P2Pd.StreamInfo) resp;
+                }
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
         }
     }
 

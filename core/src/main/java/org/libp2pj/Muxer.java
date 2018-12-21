@@ -51,5 +51,12 @@ public interface Muxer extends Connector<Closeable, Muxer.MuxerAdress> {
         public Peer getPeer() {
             return peer;
         }
+
+        @Override
+        public String toString() {
+            return peer + "[" +
+                    protocols.stream().map(Protocol::toString).collect(Collectors.joining(","))
+                    + "]";
+        }
     }
 }
